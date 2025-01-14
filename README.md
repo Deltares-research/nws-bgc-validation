@@ -1,5 +1,6 @@
 # Validation scripts for North West Shelf BGC models
 
-[workflow.pptx](https://github.com/user-attachments/files/18412488/workflow.pptx)
+![workflow](https://github.com/user-attachments/assets/02dfeca8-927d-41fb-b158-9efa1c3cb612)
+
 
 
