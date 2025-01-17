@@ -21,6 +21,7 @@ import geopandas as gpd
 from shapely.geometry import LineString, Point
 from geopy.distance import geodesic
 import warnings
+import math
 
 # from metpy.interpolate import cross_section  # for NWS transect extraction
 
@@ -91,9 +92,29 @@ trans_dict = {
         {'x1': -2.08, 
          'y1': 56.96,
          'x2': 8.32, 
-         'y2': 56.96}
+         'y2': 56.96},
+    'NOORDWK': 
+        {'x1': 4.404777986040303, 
+         'y1': 52.26059775635567,
+         'x2': 3.5300248567287253, 
+         'y2': 52.58532019508742},        
+    'TERSLG': 
+        {'x1': 5.1492051575453575, 
+         'y1': 53.41453186743249,
+         'x2': 3.156039626051446, 
+         'y2': 55.17151139049696},
+    'ROTTMPT': 
+        {'x1': 6.562847418252058, 
+         'y1': 53.56538591610043,
+         'x2': 6.212820857916571, 
+         'y2': 54.117344728657535},
+    'WALCRN': 
+        {'x1': 3.409497727805905, 
+         'y1': 51.54806447247548,
+         'x2': 2.677801866004242, 
+         'y2': 51.95612410943133},
 }
-
+    
 # Suppress specific warning types (e.g., DeprecationWarning, UserWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -107,20 +128,26 @@ end_year = 2017
 model = 'rea'
 slice_2d = 'transect'
 NWDM_depth = 'depth' #'surface' 'depth' 
-NWDM_gridded = True # True or False
+NWDM_gridded = False # True or False
 selected_years = years_in_order(start_year, end_year)
+# Create vertical bins of size X meters for the profile observations
+bin_size = 5 #in meters
+# Define a distance threshold (e.g., 0.05 degrees ~ approx 5-6 km) for the transect line to snap observations
+distance_threshold = 0.08
+print(f'distance threshold: {distance_threshold}')
 
 outdir = fr'P:\11209810-cmems-nws\figures\transects\{start_year}_{end_year}' if os.name == 'nt' else fr'/p/11209810-cmems-nws/figures/transects/{start_year}_{end_year}'
 if not os.path.exists(outdir):
     os.makedirs(outdir)
 
-offices = ['NWS', 'IBI']
-variables = ['PH', 'PO4', 'NO3', 'CHL', 'OXY']
-#variables = ['OXY']
+offices = ['IBI']#, 'NWS']
+# variables = ['PH', 'PO4', 'NO3', 'CHL', 'OXY']
+variables = ['CHL']
 
 # Choose transects
-transects = ['NORWAY1','NORWAY2','DENMARK']#,'NOORDWK', 'TERSLG', 'ROTTMPT', 'WALCRN']
-# transects = ['NOORDWK', 'TERSLG', 'ROTTMPT', 'WALCRN']
+# transects = ['NORWAY1','NORWAY2','DENMARK','NOORDWK', 'TERSLG', 'ROTTMPT', 'WALCRN']
+transects = ['NORWAY2']
+# transects = ['TERSLG']
 
 for office in offices:
     for var in variables:
@@ -142,7 +169,7 @@ for office in offices:
             cbar_title = 'Phosphate [mmol m-3]'
             cmap = cmocean.cm.matter
         elif var == 'OXY':
-            vmin, vmax, step = 160, 310, 20
+            vmin, vmax, step = 120, 330, 20
             cbar_title = 'Dissolved Oxygen [mmol m-3]'
             cmap = cmocean.cm.oxy
         elif var == 'PH':
@@ -177,69 +204,59 @@ for office in offices:
                     obs['depth'] = np.where(obs['depth'] > 0, -obs['depth'], obs['depth']) #convert positive depth values to negative
           
         obs['datetime'] = pd.to_datetime(obs['datetime'], format='mixed', dayfirst = False)
+        obs['depth'] = obs['depth'].fillna(-1)
+        obs['station'] = obs['station'].fillna(obs['geom'])
+        obs['station'] = obs['station'].astype('string')
+
+        if NWDM_gridded:
+            obs['depth'] = -1 #for gridded, assume a surface depth
         
         for trans in transects:
-            if NWDM_gridded:
-                obs['depth'] = -3 #for gridded, assume a surface depth
-                # Convert DataFrame to GeoDataFrame
-                df = gpd.GeoDataFrame(
-                    obs,
-                    geometry=gpd.GeoSeries.from_wkt(obs["geom"]),  # Convert WKT to geometry
-                    crs="EPSG:4326",  # WGS 84 Coordinate Reference System
-                )
-                               
-                # Define the starting and ending coordinates of the transect line
-                x1, y1 = trans_dict[trans]['x1'], trans_dict[trans]['y1']
-                x2, y2 = trans_dict[trans]['x2'], trans_dict[trans]['y2']
-                start_coords = (x1, y1)  # Example: (longitude, latitude)
-                end_coords = (x2, y2)
-                
-                # Create a LineString geometry
-                line = LineString([start_coords, end_coords])
-                
-                # Calculate distance of each station from the line
-                df["distance_to_line"] = df.geometry.distance(line)
-                
-                # Define a distance threshold (e.g., 0.05 degrees ~ approx 5-6 km)
-                distance_threshold = 0.1
-                
-                # Filter stations within the threshold distance
-                close_stations = df[df["distance_to_line"] <= distance_threshold]
-                obs = close_stations.copy()
-                
-                # Define the starting point of the transect
-                start_point = Point(start_coords)  # e.g., (-4.5, 48.2)
-                
-                # Calculate distance from the starting point for close_stations
-                obs["distance_from_start"] = obs.geometry.apply(calculate_distance_to_start)
-                try:
-                    obs["distance_from_start"] = obs["distance_from_start"].round(0).astype(int)
-                except:
-                    print("No observations")
-                #Station names  and distances to plot
-                plot_locs = list(obs['station'].unique()) #station names along transect
-                
-                # Group by 'station' and extract the first (or unique) 'distance_from_start'
-                plot_dist = obs.groupby("station")["distance_from_start"].first().reset_index()
-                
-            else:
-                trans_st = pd.DataFrame(obs[obs['station'].str.startswith(trans, na=False)].station)
-                if len(trans_st) == 0:
-                    print('No observation station')
-                    positions = []
-                    mean_obs = []
-                else:
-                    plot_locs = list(trans_st['station'].unique()) #station names along transect
-                    
-                    # Extract numeric values at the end of each station name
-                    trans_st['number'] = trans_st['station'].str.extract(r'(\d+)$').astype(int)
-                    
-                    # Find the rows with the minimum and maximum values
-                    start_offset = trans_st.loc[trans_st['number'].idxmin(), 'number'] * 1000 #offset of first station in meters
-                
+            print(' ')
+            print(f'Runnning {trans}')
+
+            obs_trans = obs
+            # Convert DataFrame to GeoDataFrame
+            df = gpd.GeoDataFrame(
+                obs_trans,
+                geometry=gpd.GeoSeries.from_wkt(obs_trans["geom"]),  # Convert WKT to geometry
+                crs="EPSG:4326",  # WGS 84 Coordinate Reference System
+            )
+                           
+            # Define the starting and ending coordinates of the transect line
+            x1, y1 = trans_dict[trans]['x1'], trans_dict[trans]['y1']
+            x2, y2 = trans_dict[trans]['x2'], trans_dict[trans]['y2']
+            start_coords = (x1, y1)  # Example: (longitude, latitude)
+            end_coords = (x2, y2)
+            
+            # Create a LineString geometry
+            line = LineString([start_coords, end_coords])
+            
+            # Calculate distance of each station from the line
+            df["distance_to_line"] = df.geometry.distance(line)
+                       
+            # Filter stations within the threshold distance
+            close_stations = df[df["distance_to_line"] <= distance_threshold]
+            obs_trans = close_stations.copy()
+            
+            # Define the starting point of the transect
+            start_point = Point(start_coords)  # e.g., (-4.5, 48.2)
+            
+            # Calculate distance from the starting point for close_stations
+            obs_trans["distance_from_start"] = obs_trans.geometry.apply(calculate_distance_to_start)
+            try:
+                obs_trans["distance_from_start"] = obs_trans["distance_from_start"].round(0).astype(int)
+            except:
+                print("No observations")
+            #Station names  and distances to plot
+            plot_locs = list(obs_trans['station'].unique()) #station names along transect
+            
+            # Group by 'station' and extract the first (or unique) 'distance_from_start'
+            plot_dist = obs_trans.groupby("station")["distance_from_start"].first().reset_index()
+                                                      
             #Filter obs to years
             obs = obs.loc[(obs.datetime>=f'{start_year}-01-01') & (obs.datetime<=f'{str(int(end_year)+1)}-01-01')]
-                        
+            
             positions = []
             mean_obs = []
             
@@ -248,14 +265,31 @@ for office in offices:
                 obs_point = obs_point.set_index('datetime')
                 obs_point = obs_point[['value','depth']]
                 obs_point.index = pd.to_datetime(obs_point.index)
-                
+
                 if var == 'CHL':
                     obs_season_list = []
                     obs_season = obs_point.loc[obs_point.index.month.isin([3,4,5,6,7,8,9]), ['value','depth']]
                     if len(obs_season) == 0:
                         obs_season_list.append([])
                     else:
+                        # Handle the range of depths (negative and zero)
+                        min_depth = math.floor(obs_season['depth'].min())  # Round down for most negative depth
+                        max_depth = 0  # Since sea depths are zero or negative
+                        
+                        # Create bins starting from the minimum depth up to 0
+                        bins = range(min_depth, max_depth + bin_size, bin_size)
+                        obs_season['depth_bin'] = pd.cut(obs_season['depth'], bins=bins, right=False)
+                        
+                        # Calculate bin midpoints (average of bin edges)
+                        obs_season['depth'] = obs_season['depth_bin'].apply(
+                            lambda b: (b.left + b.right) / 2 if pd.notnull(b) else None  # Handle NaN bins safely
+                        )
+                        obs_season['depth'] =  obs_season['depth'].astype(float)                        
+                        # Drop the depth_bin column (optional, for cleaner output)
+                        obs_season.drop(columns=['depth_bin'], inplace=True)
+                        
                         obs_season = obs_season.groupby('depth')['value'].mean().reset_index()
+                        obs_season['depth'] = np.where(obs_season['depth'] > 0.0, -1.0, obs_season['depth']) #convert positive depth values to -1
                         obs_season_list.append(obs_season)
                 elif var == 'NO3':
                     obs_season_list = []
@@ -264,7 +298,25 @@ for office in offices:
                         obs_season_list.append([])
                     else:
                         obs_season['value'] = obs_season['value']*1000/14.006720 
+                        
+                        # Handle the range of depths (negative and zero)
+                        min_depth = math.floor(obs_season['depth'].min())  # Round down for most negative depth
+                        max_depth = 0  # Since sea depths are zero or negative
+                        
+                        # Create bins starting from the minimum depth up to 0
+                        bins = range(min_depth, max_depth + bin_size, bin_size)
+                        obs_season['depth_bin'] = pd.cut(obs_season['depth'], bins=bins, right=False)
+                        
+                        # Calculate bin midpoints (average of bin edges)
+                        obs_season['depth'] = obs_season['depth_bin'].apply(
+                            lambda b: (b.left + b.right) / 2 if pd.notnull(b) else None  # Handle NaN bins safely
+                        )
+                        obs_season['depth'] =  obs_season['depth'].astype(float)
+                        # Drop the depth_bin column (optional, for cleaner output)
+                        obs_season.drop(columns=['depth_bin'], inplace=True)
+                        
                         obs_season = obs_season.groupby('depth')['value'].mean().reset_index()
+                        obs_season['depth'] = np.where(obs_season['depth'] > 0.0, -1.0, obs_season['depth']) #convert positive depth values to -1
                         obs_season_list.append(obs_season)
                 elif var == 'PO4':
                     obs_season_list = []
@@ -273,17 +325,53 @@ for office in offices:
                         obs_season_list.append([])
                     else:
                         obs_season['value'] = obs_season['value']*1000/30.973762 
+                        
+                        # Handle the range of depths (negative and zero)
+                        min_depth = math.floor(obs_season['depth'].min())  # Round down for most negative depth
+                        max_depth = 0  # Since sea depths are zero or negative
+                        
+                        # Create bins starting from the minimum depth up to 0
+                        bins = range(min_depth, max_depth + bin_size, bin_size)
+                        obs_season['depth_bin'] = pd.cut(obs_season['depth'], bins=bins, right=False)
+                        
+                        # Calculate bin midpoints (average of bin edges)
+                        obs_season['depth'] = obs_season['depth_bin'].apply(
+                            lambda b: (b.left + b.right) / 2 if pd.notnull(b) else None  # Handle NaN bins safely
+                        )
+                        obs_season['depth'] =  obs_season['depth'].astype(float)
+                        # Drop the depth_bin column (optional, for cleaner output)
+                        obs_season.drop(columns=['depth_bin'], inplace=True)
+                        
                         obs_season = obs_season.groupby('depth')['value'].mean().reset_index()
+                        obs_season['depth'] = np.where(obs_season['depth'] > 0.0, -1.0, obs_season['depth']) #convert positive depth values to -1
                         obs_season_list.append(obs_season)
                 elif var == 'OXY':
                     obs_season_list = []              
                     obs_season = obs_point.copy()
+                    obs_season = obs_point.loc[obs_point.index.month.isin([6,7,8]), ['value','depth']]
                     if len(obs_season) == 0:
                         obs_season_list.append([])
                     else:
-                        obs_season = obs_point.loc[obs_point.index.month.isin([6,7,8]), ['value','depth']]
                         obs_season['value'] = obs_season['value']*1000/31.998 
+
+                        # Handle the range of depths (negative and zero)
+                        min_depth = math.floor(obs_season['depth'].min())  # Round down for most negative depth
+                        max_depth = 0  # Since sea depths are zero or negative
+                        
+                        # Create bins starting from the minimum depth up to 0
+                        bins = range(min_depth, max_depth + bin_size, bin_size)
+                        obs_season['depth_bin'] = pd.cut(obs_season['depth'], bins=bins, right=False)
+                        
+                        # Calculate bin midpoints (average of bin edges)
+                        obs_season['depth'] = obs_season['depth_bin'].apply(
+                            lambda b: (b.left + b.right) / 2 if pd.notnull(b) else None  # Handle NaN bins safely
+                        )
+                        obs_season['depth'] =  obs_season['depth'].astype(float)
+                        # Drop the depth_bin column (optional, for cleaner output)
+                        obs_season.drop(columns=['depth_bin'], inplace=True)
+                        
                         obs_season = obs_season.groupby('depth')['value'].min().reset_index()
+                        obs_season['depth'] = np.where(obs_season['depth'] > 0.0, -1.0, obs_season['depth']) #convert positive depth values to -1
                         obs_season_list.append(obs_season)
                 elif var == 'PH':
                     obs_season_list = []
@@ -292,17 +380,27 @@ for office in offices:
                         if len(obs_season) == 0:
                             obs_season_list.append([])
                         else:
+                            # Handle the range of depths (negative and zero)
+                            min_depth = math.floor(obs_season['depth'].min())  # Round down for most negative depth
+                            max_depth = 0  # Since sea depths are zero or negative
+                            
+                            # Create bins starting from the minimum depth up to 0
+                            bins = range(min_depth, max_depth + bin_size, bin_size)
+                            obs_season['depth_bin'] = pd.cut(obs_season['depth'], bins=bins, right=False)
+                            
+                            # Calculate bin midpoints (average of bin edges)
+                            obs_season['depth'] = obs_season['depth_bin'].apply(
+                                lambda b: (b.left + b.right) / 2 if pd.notnull(b) else None  # Handle NaN bins safely
+                            )
+                            obs_season['depth'] =  obs_season['depth'].astype(float)
+                            # Drop the depth_bin column (optional, for cleaner output)
+                            obs_season.drop(columns=['depth_bin'], inplace=True)                            
                             obs_season = obs_season.groupby('depth')['value'].mean().reset_index()
+                            obs_season['depth'] = np.where(obs_season['depth'] > 0.0, -1.0, obs_season['depth']) #convert positive depth values to -1
                             obs_season_list.append(obs_season)      
                 
                 mean_obs.append(obs_season_list)
-                if NWDM_gridded:
-                    positions.append(plot_dist["distance_from_start"][i]) 
-                else:
-                    positions.append(
-                        int(''.join(c for c in plot_locs[i] if c.isdigit())) * 1000 - start_offset
-                    )   # subtract an offset from first point!                        
-            
+                positions.append(plot_dist["distance_from_start"][i])           
             
             if office == 'DFM':
                 ## Read DFM
@@ -389,7 +487,7 @@ for office in offices:
                     norm = mpl.colors.BoundaryNorm(obs_levels, cmap.N) 
                     for pt in range(0, len(mean_obs)):
                         try:
-                            plt.scatter(x=np.repeat(positions[pt], len(mean_obs[pt][i].depth)), y=mean_obs[pt][i].depth, c=mean_obs[pt][i].value, cmap=cmap, norm=norm, edgecolors='k')
+                            plt.scatter(x=np.repeat(positions[pt], len(mean_obs[pt][i].depth)), y=mean_obs[pt][i].depth, c=mean_obs[pt][i].value, cmap=cmap, norm=norm, edgecolors='k', alpha=0.9)
                         except: Exception
                         
                     plt.xlim(left=-1000)
@@ -506,7 +604,7 @@ for office in offices:
                     norm = mpl.colors.BoundaryNorm(obs_levels, cmap.N) 
                     for pt in range(0, len(mean_obs)):
                         try:
-                            plt.scatter(x=np.repeat(positions[pt], len(mean_obs[pt][i].depth)), y=mean_obs[pt][i].depth, c=mean_obs[pt][i].value, cmap=cmap, norm=norm, edgecolors='k')
+                            plt.scatter(x=np.repeat(positions[pt], len(mean_obs[pt][i].depth)), y=mean_obs[pt][i].depth, c=mean_obs[pt][i].value, cmap=cmap, norm=norm, edgecolors='k', alpha=0.9)
                         except: Exception
                     
                     plt.xlim(left=-1000)
@@ -617,12 +715,11 @@ for office in offices:
                     norm = mpl.colors.BoundaryNorm(obs_levels, cmap.N) 
                     for pt in range(0, len(mean_obs)):
                         try:
-                            plt.scatter(x=np.repeat(positions[pt], len(mean_obs[pt][i].depth)), y=mean_obs[pt][i].depth, c=mean_obs[pt][i].value, cmap=cmap, norm=norm, edgecolors='k')
+                            plt.scatter(x=np.repeat(positions[pt], len(mean_obs[pt][i].depth)), y=mean_obs[pt][i].depth, c=mean_obs[pt][i].value, cmap=cmap, norm=norm, edgecolors='k', alpha=0.9)
                         except: Exception
                     
                     plt.xlim(left=-1000)
                     plt.ylim(top=2)
-                    plt.title('')
                     plt.ylabel('Depth [m]')
                     plt.xlabel('Distance [m]')
                     plt.ticklabel_format(style="scientific", axis="x", scilimits=(0, 0))

@@ -83,10 +83,10 @@ basedir = r'P:\11209810-cmems-nws\model_output' if os.name == 'nt' else r'/p/112
 
 start_year = 2021
 end_year = 2022
-slice_2d = 'surface' #surface or bottom (bottom only works for DFM currently) 
-NWDM_gridded = True
-variables = ['NO3', 'PO4', 'PH', 'CHL', 'OXY'] 
-#variables = ['NO3', 'PO4', 'PH'] #PCO2 only available in gridded format 
+slice_2d = 'bottom' #surface or bottom (bottom only works for DFM currently) 
+NWDM_gridded = False
+# variables = ['NO3', 'PO4', 'PH', 'CHL', 'OXY'] 
+variables = ['OXY'] #PCO2 only available in gridded format 
 
 #Points to plot (only for non-gridded)
 fixed_stations = False # True or False

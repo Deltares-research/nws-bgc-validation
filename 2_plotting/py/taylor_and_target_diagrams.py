@@ -35,8 +35,8 @@ def assign_region(polygon):
 
 rootdir = r'P:\11209810-cmems-nws\model_output\timeseries_per_polygon' if os.name == 'nt' else r'/p/11209810-cmems-nws/model_output/timeseries_per_polygon'
 
-start_year = 2015
-end_year = 2017
+start_year = 2021
+end_year = 2022
 year = fr'{start_year}_{end_year}'
 offices = ['NWS', 'IBI'] #DFM can be added only if the years are between 2015-2017
 taylor = 1 # yes - 1 | no - 0
@@ -345,7 +345,7 @@ for office in offices:
                           styleOBS = '-',colOBS = 'r', markerobs = 'o', titleOBS = 'Observation', 
                           markerLegend = 'on', markerlabel=['REAN',polys[0]], markerColor=colors[0],
                           widthcor=0.5, widthrms=0.5, widthstd=0.5, labelrms='', titlecor='off',
-                          axismax=2) 
+                          axismax=1.5) 
         
         #Add the other points
         for d in range(2,len(std)):
@@ -360,7 +360,7 @@ for office in offices:
         title = plt.title(fr'Chlorophyll-a {office} vs satellite in OSPAR assessment areas', y=1.15)
         
         point00 = mlines.Line2D([], [], color='b', linestyle ='--', linewidth=0.5, label='Absolute \n Correlation Coefficient')  # CORR label
-        point0 = mlines.Line2D([], [], color='g', linestyle ='--', linewidth=0.5, label='RMSD')  # RMSD label
+        point0 = mlines.Line2D([], [], color='g', linestyle ='--', linewidth=0.5, label='NRMSD')  # RMSD label
         
         point1 = mlines.Line2D([], [], color='k', marker='+', markersize=10, label='Plume',linestyle='None')
         point2 = mlines.Line2D([], [], color='y', marker='+', markersize=10, label='Coastal',linestyle='None')
@@ -447,7 +447,7 @@ for office in offices:
             
             sm.target_diagram(bias[0],  crmsd[0],  rmsd[0],
                               markerLegend = 'on', markerlabel=[polys[0]], markerColor=colors[0],
-                              axismax=2, circles=[0,1,2,3,4])      # NWS / IBI
+                              axismax=1.5, circles=[0,1,2,3,4])      # NWS / IBI
                               # axismax=16, circles=[0,4,8,12,16])   # DFM
             
             #Add the other points

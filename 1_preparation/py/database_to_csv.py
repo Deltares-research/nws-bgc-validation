@@ -184,8 +184,8 @@ outdir = r'P:\11209810-cmems-nws\Data\NWDM_observations' if os.name == 'nt' else
 NWDM_stats=False
 
 # set time frame 
-start_year = 2003
-end_year = 2022
+start_year = 2015
+end_year = 2017
 
 #gridded or not, if yes, define bounding box
 gridded = True #True - yes, False - no
@@ -199,7 +199,7 @@ buffer = 10.5 # (meters) take all measuerements from the top x meters
 depths = ['surface','bottom'] #Choose from: surface, bottom
 #choose variale
 #parameters = ['NO3', 'PO4', 'pH', 'OXY', 'Chlfa']#, 'pCO2'] #
-parameters = ['PO4']#['pCO2']
+parameters = ['OXY']#['pCO2']
 
 ##################
 #Available parameters
@@ -350,6 +350,7 @@ for depth in depths:
                 obsdata = readUrl(url, user, password)  
                 obsdata['datetime'] = pd.to_datetime(obsdata['date'], dayfirst = False)
                 print(obsdata.data_owner.unique())
+                print(obsdata.unit_preflabel.unique())
                                 
                 # Cropping time
                 obsdata = obsdata.loc[(obsdata['datetime'] >= tstart) & 

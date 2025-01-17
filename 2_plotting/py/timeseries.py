@@ -138,9 +138,9 @@ station_dict = {
 # In[4]:
 
 ## Choose the year, model and output directory
-start_year = 2003
-end_year = 2017
-model = 'rea'
+start_year = 2021
+end_year = 2022
+model = 'nrt'
 selected_years = years_in_order(start_year, end_year)
 slice_2d = 'surface' 
 taylor = 1 # yes - 1 | no - 0
@@ -170,8 +170,8 @@ tend = dt.datetime(end_year,12,31)
 
 ## Plotting 
 
-variables = ['OXY', 'CHL'] #, 'PH', 'NO3', 'OXY', 'PCO2', 'CHL']
-#variables = ['NO3']#,'PO4']
+# variables = ['PH', 'NO3', 'PO4', 'OXY', 'CHL']
+variables = ['CHL']#,'PO4']
 
 for var in variables:
     print(fr'Reading NWDM points for {var}')
@@ -218,6 +218,12 @@ for var in variables:
 
     # OSPAR paper stations
     # plot_locs = [
+    # 'NOORDWK2','NOORDWK10','NOORDWK20','NOORDWK30','NOORDWK50','NOORDWK70',
+    #               'ROTTMPT3','ROTTMPT10','ROTTMPT100','ROTTMPT15','ROTTMPT20','ROTTMPT30','ROTTMPT50',
+    #               'ROTTMPT70', 'TERSLG10', 'TERSLG50','TERSLG100', 'TERSLG135','TERSLG175','TERSLG20','TERSLG235',
+    #               'TERSLG30', 'TERSLG50','TERSLG70','WALCRN2','WALCRN10','WALCRN20','WALCRN30',
+    #               'WALCRN50','WALCRN70',
+        
     # "Rockall_Stn_18", "WES_Stn_347", "WES_Stn_209", "WES_Stn_34", "se_faroe",
     # "WES_Stn_669", "WCO_L4_PML", "74E9_0040 (Liverpool_Bay)", "Bay_of_Biscay_north",
     # "Stonehaven", "Bay_of_Biscay_south", "channel_area_france", "nw_shetland",
@@ -226,6 +232,10 @@ for var in variables:
     # "WES_Stn_329", "WES_Stn_104", "WES_Stn_642", "Granville", "Seine_bloom",
     # "CCTI_FR", "West_Gabbard", "GOERE6", "TERSLG10", "ENS_central",
     # "EMPM_DE_1", "CO_central", "GBC_DE_2", "ELPM_DE_1", "Gniben"
+    
+    # 'TERSLG50','TERSLG135', 'TERSLG235', 'NOORDWK10','NOORDWK70', 'ROTTMPT70', 'West_Gabbard', 'GOERE6', 'TH1', 'W01', 'Stonehaven', 
+    #               'north_northsea', 'M15898',  'WCO_L4_PML',  '74E9_0040 (Liverpool_Bay)', 'channel_area_france', 'M5514', 'Aa13', 'M10539'
+    
     # ]
     
     # # OSPAR Taylor stations
@@ -673,7 +683,7 @@ for var in variables:
                     title = plt.title(fr'{var} - predictions vs observation at {loc}', y=1.15)
                     
                     point00 = mlines.Line2D([], [], color='b', linestyle ='--', linewidth=0.5, label='Absolute \n Correlation Coefficient')  # CORR label
-                    point0 = mlines.Line2D([], [], color='g', linestyle ='--', linewidth=0.5, label='RMSD')  # RMSD label
+                    point0 = mlines.Line2D([], [], color='g', linestyle ='--', linewidth=0.5, label='NRMSD')  # RMSD label
                     
                     point1 = mlines.Line2D([], [], color='k', marker='+', markersize=10, label='NWS',linestyle='None')
                     point2 = mlines.Line2D([], [], color='y', marker='+', markersize=10, label='IBI',linestyle='None')

@@ -79,14 +79,14 @@ def combine_images(image_paths, output_path, layout="horizontal", grid_size=(2, 
     print(f"Combined image saved to {output_path}")
 #%%
 # Example usage
-start_year=2021
-end_year=2022
-fig_type = "maps_differences"
-variables =  ["CHL"]#["NO3","PO4","CHL", "PH", "OXY"] #"PCO2", 
-slice2d = ""
-keyword1 = "" #"non-fixed", "fixed"
-keyword2 = ""
-layout = "vertical" # "horizontal", "vertical" # Plot layout
+start_year=2015
+end_year=2017
+fig_type = "transects"
+variables = ['NO3']#,"NO3","PO4","CHL", "PH", "OXY"] #"PCO2", 
+slice2d = "transect"
+keyword1 = "NORWAY2" #"non-fixed", "fixed"
+keyword2 = "depth"
+layout = "grid" # "horizontal", "vertical" # Plot layout
 
 parent_dir = fr"p:\11209810-cmems-nws\figures\{fig_type}\{start_year}_{end_year}"
     

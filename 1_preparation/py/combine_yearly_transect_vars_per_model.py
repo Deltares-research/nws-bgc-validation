@@ -305,11 +305,11 @@ trans_dict = {
 ## Combine the .nc files into yearly files
 
 # Selection:
-offices = ['NWS', 'IBI'] #'IBI' 'NWS' 'DFM'
+offices = ['NWS']#, 'IBI'] #'IBI' 'NWS' 'DFM'
 model = 'nrt' # 'rea' or 'nrt'   
 slice_2d = 'transect'
-start_year = 2020
-end_year = 2023
+start_year = 2021
+end_year = 2022
 selected_years = years_in_order(start_year, end_year)
 variables = ['o2', 'chl', 'no3', 'ph', 'po4'] 
 variables_DFM = ['mesh2d_Chlfa', 'mesh2d_NO3', 'mesh2d_OXY', 'mesh2d_pH', 'mesh2d_PO4']
@@ -318,7 +318,8 @@ variables_DFM = ['mesh2d_Chlfa', 'mesh2d_NO3', 'mesh2d_OXY', 'mesh2d_pH', 'mesh2
 # DFM: 'mesh2d_Chlfa', 'mesh2d_NO3', 'mesh2d_OXY', 'mesh2d_pH', 'mesh2d_PO4'
 
 # Choose transects
-transects = ['NORWAY1','NORWAY2','DENMARK', 'NOORDWK', 'TERSLG', 'ROTTMPT', 'WALCRN'] 
+# transects = ['NORWAY1','NORWAY2','DENMARK', 'NOORDWK', 'TERSLG', 'ROTTMPT', 'WALCRN'] 
+transects = ['NOORDWK', 'TERSLG', 'ROTTMPT', 'WALCRN']
 
 
 # read a database file
@@ -349,6 +350,7 @@ for trans in transects:
         
         x1, y1 = float(loc_min.geom.iloc[0].split(' ')[1:][0][1:]), float(loc_min.geom.iloc[0].split(' ')[1:][1][:-1])
         x2, y2 = float(loc_max.geom.iloc[0].split(' ')[1:][0][1:]), float(loc_max.geom.iloc[0].split(' ')[1:][1][:-1])
+        print(f'{trans}: (x1: {x1}, y1: {y1}), (x2: {x2}, y2: {y2})')
     
     line_array = np.array([[x1,y1], [x2,y2]])
     # line_array = np.array([[-1.8,49.0], [-1.9,49.4]])

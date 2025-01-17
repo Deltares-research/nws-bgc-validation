@@ -48,7 +48,7 @@ gridded = False #True - yes, False - no
 
 variables = ['pH', 'Chlfa', 'OXY', 'NO3', 'PO4', 'pCO2'] #
 #variables = ['NO3', 'PO4']
-depth = 'surface' #surface, bottom
+depth = 'bottom' #surface, bottom
 
 #%%
 #Loop

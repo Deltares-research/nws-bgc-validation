@@ -21,8 +21,8 @@ from sklearn.metrics import root_mean_squared_error
 # path to output folder for plots
 rootdir = r'P:\11209810-cmems-nws\model_output\timeseries_per_polygon' if os.name == 'nt' else r'/p/11209810-cmems-nws/model_output/timeseries_per_polygon'
 
-start_year = 2015
-end_year = 2017
+start_year = 2021
+end_year = 2022
 offices = ['NWS', 'IBI', 'satellite'] #DFM can be added only if the years are between 2015-2017
 
 outdir_tables = fr'P:\11209810-cmems-nws\figures\tables\{start_year}_{end_year}' if os.name == 'nt' else r'/p/11209810-cmems-nws/figures/tables/{start_year}_{end_year}'
