@@ -1,5 +1,6 @@
 # Future developments
 
+- [ ]	Horizontal binning of transect measurements
 - [ ]	Making the unit (DFM / CMEMS) an option in the code
 - [ ]	Thinking about oxygen – minimum / mean and which months to use as default?
 - [ ]	Adding more variables to our code (e.g. pH, Si, temperature, salinity etc) – including defining ‘default’ colourbar ranges for the North Sea, but making this also changeable in a plotting function
