@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-#%%  
+ 
 ## Imports
 
 import os
@@ -61,8 +60,7 @@ def var_mapping(var):
         var_obs = 'pCO2'
               
     return var_sat, var_IBI, var_NWS, var_DFM, var_obs
-
-#%%   
+  
 ## Select domain
 
 # LAT_MIN = None
@@ -81,7 +79,7 @@ zooming = 'zoom'
 basedir = r'P:\11209810-cmems-nws\model_output' if os.name == 'nt' else r'/p/11209810-cmems-nws/model_output'
 #rootdir = os.path.join(basedir, 'regridded_onto_NWS')
 
-#%%  
+  
 ## Choose and read the model map files:
 
 offices = ['IBI', 'satellite']  #
@@ -106,7 +104,7 @@ min_obs_count = 1
 # path to output folder for plots
 outdir = fr'P:\11209810-cmems-nws\figures\maps_model_obs\{start_year}_{end_year}' if os.name == 'nt' else fr'/p/11209810-cmems-nws/figures/maps_model_obs/{start_year}_{end_year}'
 
-#%% 
+
 if not os.path.exists(outdir):
     os.makedirs(outdir)
 
@@ -467,5 +465,3 @@ for office in offices:
             print(f'Plot saved for {var} for {office}, {statistics}')
             print(' ')
             i=i+1
-
-# %%
