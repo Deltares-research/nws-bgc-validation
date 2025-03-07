@@ -75,38 +75,37 @@ LON_MIN = -10
 LON_MAX = 13
 zooming = 'zoom'
 
-#Input directory
+# Input directory
 basedir = r'P:\11209810-cmems-nws\model_output' if os.name == 'nt' else r'/p/11209810-cmems-nws/model_output'
 #rootdir = os.path.join(basedir, 'regridded_onto_NWS')
 
   
 ## Choose and read the model map files:
 
-offices = ['IBI', 'satellite']  #
-model = 'nrt' #'rea' 'nrt'
-start_year = 2021
-end_year = 2022
-slice_2d = 'surface' #surface or bottom (bottom only works for DFM currently) 
+offices = ['DFM'] 
+model = 'rea' #'rea' 'nrt'
+start_year = 2015
+end_year = 2017
+slice_2d = 'surface' # surface or bottom (bottom only works for DFM currently) 
 NWDM_gridded = True
-variables = ['PH', 'CHL','OXY'] 
-#variables = ['NO3','PO4'] 
-#variables = ['PCO2'] #PCO2 only available in gridded format 
+variables = ['PH', 'CHL','OXY'] # Note: PCO2 only available in gridded format 
+unit = 'CMEMS'  # CMEMS / DFM
 
-#Points to plot (only for non-gridded)
+# Points to plot (only for non-gridded)
 fixed_stations = False # True or False
 
-#Buffer for surface observations
+# Buffer for surface observations
 buffer = 10.5 # (meters) take all measuerements from the top x meters
 
-#Minimum amount of observations per year
+# Minimum amount of observations per year
 min_obs_count = 1
 
-# path to output folder for plots
+# Path to output folder for plots
 outdir = fr'P:\11209810-cmems-nws\figures\maps_model_obs\{start_year}_{end_year}' if os.name == 'nt' else fr'/p/11209810-cmems-nws/figures/maps_model_obs/{start_year}_{end_year}'
-
 
 if not os.path.exists(outdir):
     os.makedirs(outdir)
+
 
 selected_years = years_in_order(start_year, end_year)
 for office in offices:
@@ -150,7 +149,7 @@ for office in offices:
         print(f'Merging regridded_{slice_2d}_{office}_{start_year}_{end_year}') 
         waq_xr_ds_concat = xr.concat(waq_xr_ds, dim='time')  
         
-        if var == 'CHL':
+        if var == 'CHL':  # no unit conversion necessary
             waq_xr_ds_mean_list = []
             statistics_list = []
             waq_xr_ds_merge = waq_xr_ds_concat.where(waq_xr_ds_concat.time.dt.month.isin([3,4,5,6,7,8,9]), drop=True)  
@@ -164,7 +163,7 @@ for office in offices:
             statistics_list = []
             waq_xr_ds_merge = waq_xr_ds_concat.where(waq_xr_ds_concat.time.dt.month.isin([12,1,2]), drop=True)  
             waq_xr_ds_mean = waq_xr_ds_merge.mean(dim='time')
-            if office == 'DFM':
+            if office == 'DFM' and unit == 'CMEMS':
                 waq_xr_ds_mean = waq_xr_ds_mean*1000/14.00672
             waq_xr_ds_mean_list.append(waq_xr_ds_mean)
             statistics='winter_mean'
@@ -175,7 +174,7 @@ for office in offices:
             statistics_list = []
             waq_xr_ds_merge = waq_xr_ds_concat.where(waq_xr_ds_concat.time.dt.month.isin([1,2,12]), drop=True) 
             waq_xr_ds_mean = waq_xr_ds_merge.mean(dim='time') 
-            if office == 'DFM':
+            if office == 'DFM' and unit == 'CMEMS':
                 waq_xr_ds_mean = waq_xr_ds_mean*1000/30.973762
             waq_xr_ds_mean_list.append(waq_xr_ds_mean)
             statistics='winter_mean'
@@ -186,7 +185,7 @@ for office in offices:
             statistics_list = []
             waq_xr_ds_merge = waq_xr_ds_concat.where(waq_xr_ds_concat.time.dt.month.isin([6,7,8]), drop=True)
             waq_xr_ds_mean = waq_xr_ds_merge.min(dim='time')
-            if office == 'DFM':
+            if office == 'DFM' and unit == 'CMEMS':
                 waq_xr_ds_mean = waq_xr_ds_mean*1000/31.998
             waq_xr_ds_mean_list.append(waq_xr_ds_mean)
             statistics='summer_min'
@@ -198,7 +197,7 @@ for office in offices:
             for s in [[4,5], [8,9], [12,1]]: 
                 waq_xr_ds_merge = waq_xr_ds_concat.where(waq_xr_ds_concat.time.dt.month.isin(s), drop=True)
                 waq_xr_ds_mean = waq_xr_ds_merge.mean(dim='time')
-                if office == 'DFM':
+                if office == 'DFM' and unit == 'CMEMS':
                     waq_xr_ds_mean = waq_xr_ds_mean*0.101325
                 waq_xr_ds_mean_list.append(waq_xr_ds_mean)
                 if s==[4,5]:
@@ -224,7 +223,7 @@ for office in offices:
                     statistics = 'winter_mean'
                 statistics_list.append(statistics)
                 print(f'{var}, statistics: {statistics}.')
-        else:
+        else:  # Careful with unit conversions, depending on quantity!
             waq_xr_ds_mean_list = []
             statistics_list = []
             waq_xr_ds_merge = waq_xr_ds_concat
@@ -293,7 +292,7 @@ for office in offices:
                 series_crop = series_crop.value
                 series_crop.index = pd.to_datetime(series_crop.index)
                 series_crop = series_crop.dropna()
-                if var_obs == 'Chlfa':
+                if var_obs == 'Chlfa':  # no unit conversion
                     obs_season_list = []
                     obs_season = series_crop.where(series_crop.index.month.isin([3,4,5,6,7,8,9]))   # only CHL
                     obs_season_list.append(obs_season)
@@ -306,22 +305,26 @@ for office in offices:
                     obs_season_list = []
                     for s in [[4,5], [8,9], [12,1]]: 
                         obs_season = series_crop.where(series_crop.index.month.isin(s))
-                        obs_season = obs_season*0.101325
+                        if unit == 'CMEMS':
+                            obs_season = obs_season*0.101325
                         obs_season_list.append(obs_season)
                 elif var_obs == 'NO3':
                     obs_season_list = []
                     obs_season = series_crop.where(series_crop.index.month.isin([1,2,12]))   # only NO3
-                    obs_season = obs_season*1000/14.00672
+                    if unit == 'CMEMS':
+                        obs_season = obs_season*1000/14.00672
                     obs_season_list.append(obs_season)
                 elif var_obs == 'PO4':
                     obs_season_list = []
                     obs_season = series_crop.where(series_crop.index.month.isin([1,2,12]))   # only PO4
-                    obs_season = obs_season*1000/30.973762
+                    if unit == 'CMEMS':
+                        obs_season = obs_season*1000/30.973762
                     obs_season_list.append(obs_season)
                 elif var_obs == 'OXY':
                     obs_season_list = []
                     obs_season = series_crop.where(series_crop.index.month.isin([6,7,8]))  
-                    obs_season = obs_season*1000/31.998 
+                    if unit == 'CMEMS':
+                        obs_season = obs_season*1000/31.998 
                     obs_season_list.append(obs_season)
                 else:
                     print('Observation variable not recognized.')
