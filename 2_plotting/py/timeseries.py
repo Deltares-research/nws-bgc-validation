@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ## Prep:
-
-# In[1]:
-
+# Imports
 
 import os
-
 import numpy as np
 import xarray as xr
 import pandas as pd
@@ -26,8 +22,6 @@ import dfm_tools as dfmt
 from dfm_tools.get_nc_helpers import get_ncvarproperties #, get_timesfromnc
 from dfm_tools.xarray_helpers import preprocess_hisnc
 
-
-# In[2]:
 
 
 # Funtions:
@@ -105,51 +99,24 @@ station_dict = {
     'M5514': 'GE_Westl_Sderpiep',
     'Aa13': 'A13',
     'M10539': 'ANHOLTE',
-    'West_Gabbard': 'EN_WESTGAB',
-}
-
-# In[3]:
+    'West_Gabbard': 'EN_WESTGAB',}
 
 
-# # Create a dictionary of the variables to plot
-
-# varDict = {
-#         'Chlfa' : {'mod_vars' : 'Chlfa',            
-#                     'p35code' : 'EPC00105', 
-#                     'lab_vars' : 'CHLF-a (ug/L)', 
-#                     'out_vars' : 'CHLFa', 
-#                     'conv_vars' : 1.,
-#                     'depth' : ['sea level', 'unknown']},
-#         'NO3' : {'mod_vars' : 'NO3', 
-#                   'p35code' : 'EPC00004', 
-#                   'lab_vars' : 'NO\u2083 (mgN/l)', 
-#                   'out_vars' : 'NO3', 
-#                   'conv_vars' : 1.,
-#                   'depth' : ['sea level', 'unknown']},
-#         'OXY' : {'mod_vars' : 'OXY', 
-#                   'p35code' : 'EPC00002', 
-#                   'lab_vars' : 'O\u2082 (mg/L)', 
-#                   'out_vars' : 'O2', 
-#                   'conv_vars' : 1.,
-#                   'depth' : ['sea level', 'unknown']},
-#         }
-
-
-# In[4]:
-
-## Choose the year, model and output directory
-start_year = 2021
-end_year = 2022
-model = 'nrt'
+# Choose the year, model and output directory
+start_year = 2015
+end_year = 2017
+model = 'rea'
 selected_years = years_in_order(start_year, end_year)
 slice_2d = 'surface' 
 taylor = 1 # yes - 1 | no - 0
+unit = 'CMEMS'  # CMEMS / DFM
+# TODO: Include option to select which models we want to plot... 
 
-#Buffer for surface observations
-buffer = 10.5 # (meters) take all measuerements from the top x meters
+# Buffer for surface observations
+buffer = 5.5 # (meters) take all measuerements from the top x meters
 
-#Minimum amount of observations per year
-min_obs_count = 10
+# Minimum amount of observations per year
+min_obs_count = 10 
 
 rootdir = r'P:\11209810-cmems-nws\model_output\combined_yearly' if os.name == 'nt' else r'/p/11209810-cmems-nws/model_output/combined_yearly'
 
@@ -165,13 +132,9 @@ tstart = dt.datetime(start_year,1,1)
 tend = dt.datetime(end_year,12,31)
 
 
-# In[6]:
-
-
 ## Plotting 
 
-# variables = ['PH', 'NO3', 'PO4', 'OXY', 'CHL']
-variables = ['CHL']#,'PO4']
+variables = ['PH', 'NO3', 'PO4', 'OXY', 'CHL']
 
 for var in variables:
     print(fr'Reading NWDM points for {var}')
@@ -209,20 +172,12 @@ for var in variables:
      
     
     # Loop over stations
-    # Dutch stations
+    # Dutch stations / OSPAR paper
     # plot_locs = ['NOORDWK2','NOORDWK10','NOORDWK20','NOORDWK30','NOORDWK50','NOORDWK70',
     #               'ROTTMPT3','ROTTMPT10','ROTTMPT100','ROTTMPT15','ROTTMPT20','ROTTMPT30','ROTTMPT50',
     #               'ROTTMPT70', 'TERSLG10', 'TERSLG50','TERSLG100', 'TERSLG135','TERSLG175','TERSLG20','TERSLG235',
     #               'TERSLG30', 'TERSLG50','TERSLG70','WALCRN2','WALCRN10','WALCRN20','WALCRN30',
     #               'WALCRN50','WALCRN70'] 
-
-    # OSPAR paper stations
-    # plot_locs = [
-    # 'NOORDWK2','NOORDWK10','NOORDWK20','NOORDWK30','NOORDWK50','NOORDWK70',
-    #               'ROTTMPT3','ROTTMPT10','ROTTMPT100','ROTTMPT15','ROTTMPT20','ROTTMPT30','ROTTMPT50',
-    #               'ROTTMPT70', 'TERSLG10', 'TERSLG50','TERSLG100', 'TERSLG135','TERSLG175','TERSLG20','TERSLG235',
-    #               'TERSLG30', 'TERSLG50','TERSLG70','WALCRN2','WALCRN10','WALCRN20','WALCRN30',
-    #               'WALCRN50','WALCRN70',
         
     # "Rockall_Stn_18", "WES_Stn_347", "WES_Stn_209", "WES_Stn_34", "se_faroe",
     # "WES_Stn_669", "WCO_L4_PML", "74E9_0040 (Liverpool_Bay)", "Bay_of_Biscay_north",
@@ -233,11 +188,6 @@ for var in variables:
     # "CCTI_FR", "West_Gabbard", "GOERE6", "TERSLG10", "ENS_central",
     # "EMPM_DE_1", "CO_central", "GBC_DE_2", "ELPM_DE_1", "Gniben"
     
-    # 'TERSLG50','TERSLG135', 'TERSLG235', 'NOORDWK10','NOORDWK70', 'ROTTMPT70', 'West_Gabbard', 'GOERE6', 'TH1', 'W01', 'Stonehaven', 
-    #               'north_northsea', 'M15898',  'WCO_L4_PML',  '74E9_0040 (Liverpool_Bay)', 'channel_area_france', 'M5514', 'Aa13', 'M10539'
-    
-    # ]
-    
     # # OSPAR Taylor stations
     # plot_locs = ['M5514', 'NOORDWK70', 'TERSLG50', 'TERSLG235', 'M10539', 'M15898',
     #         'Aa13', 'W03', 'TH1', 'Stonehaven', '45CV',
@@ -247,16 +197,14 @@ for var in variables:
  
     # OSPAR paper station in NWDM
     # plot_locs = [ 'TERSLG50','TERSLG135', 'TERSLG235', 'NOORDWK10','NOORDWK70', 'ROTTMPT70', 'West_Gabbard', 'GOERE6', 'TH1', 'W01', 'Stonehaven', 
-    #               'north_northsea', 'M15898',  'WCO_L4_PML',  '74E9_0040 (Liverpool_Bay)', 'channel_area_france', 'M5514', 'Aa13', 'M10539'
-    #               #'15525'
-    #               ]
+    #               'north_northsea', 'M15898',  'WCO_L4_PML',  '74E9_0040 (Liverpool_Bay)', 'channel_area_france', 'M5514', 'Aa13', 'M10539', '15525' ]
     
     excel_df = pd.DataFrame(columns=['station', 'mean_insitu', 'mean_NWS', 'mean_IBI', 'mean_DFM', 'mean_satellite', 
- 'std_NWS', 'std_IBI', 'std_DFM', 'std_satellite', 'crmsd_NWS', 'crmsd_IBI', 
- 'crmsd_DFM', 'crmsd_satellite', 'ccoef_NWS', 'ccoef_IBI', 'ccoef_DFM', 'ccoef_satellite'])
+                                     'std_NWS', 'std_IBI', 'std_DFM', 'std_satellite', 'crmsd_NWS', 'crmsd_IBI', 
+                                     'crmsd_DFM', 'crmsd_satellite', 'ccoef_NWS', 'ccoef_IBI', 'ccoef_DFM', 'ccoef_satellite'])
+    
     l=1
     for loc in plot_locs:  # loop over all locations
-    # for loc in locs:     # loop over above-mentioned station
         print(' ')    
         print(loc)
         print(' ')
@@ -266,8 +214,8 @@ for var in variables:
         outfile_table = os.path.join(outdir, f'taylor_{start_year}_{end_year}_{var}.xlsx')
         if os.path.exists(outfile_ts):
             print(f"File {outfile_ts} already exists. Skipping.")
+
         else:
-            
             ### NWDM OBSERVATIONS:
             if loc in station_dict:
                 loc_NWDM = station_dict[loc]
@@ -289,13 +237,13 @@ for var in variables:
                 series_crop = series_crop.dropna()
                 series_crop = series_crop[(series_crop < series_crop.quantile(0.98))] #Filter to robust percentiles. Cut the top 2 percentile
                 
-                if var_obs == 'NO3':
+                if var_obs == 'NO3' and unit == 'CMEMS':
                     series_crop = series_crop*1000/14.006720    
-                elif var_obs == 'OXY':
+                elif var_obs == 'OXY' and unit == 'CMEMS':
                     series_crop = series_crop*1000/31.998
-                elif var_obs == 'PO4':
+                elif var_obs == 'PO4' and unit == 'CMEMS':
                     series_crop = series_crop*1000/30.973762
-                elif var_obs == 'pCO2':
+                elif var_obs == 'pCO2' and unit == 'CMEMS':
                     series_crop = series_crop*0.101325
                 ## Lat/lon:
                 latitude = float(series.geom.iloc[0].split(' ')[1:][1][:-1])
@@ -332,7 +280,7 @@ for var in variables:
                 basedir = os.path.join(rootdir,fr'{slice_2d}_{office}_{model}_{year}.nc')
                 NWS_xr_year = xr.open_dataset(basedir)
                 NWS_crop = NWS_xr_year[var_NWS]#[:,0,:,:]                                             # extract surface
-                NWS_crop = NWS_crop.sel(longitude=longitude, latitude=latitude, method='nearest')    # Select point
+                NWS_crop = NWS_crop.sel(longitude=longitude, latitude=latitude, method='nearest')     # Select point
                 #waq_xr = waq_xr.rename({'latitude':'y', 'longitude':'x'})                            # select variable and depth
                 NWS_xr_ds.append(NWS_crop)
                 
@@ -377,13 +325,13 @@ for var in variables:
                         DFM_xr = dfmt.rename_waqvars(DFM_xr)
                         DFM_crop = DFM_xr[var_DFM].sel(stations=loc, laydim=-1)                               # select point and surface
                         
-                        if var == 'NO3':               
+                        if var == 'NO3' and unit == 'CMEMS':               
                             DFM_crop = DFM_crop*1000/14.006720 
-                        elif var == 'PO4':               
+                        elif var == 'PO4' and unit == 'CMEMS':               
                             DFM_crop = DFM_crop*1000/30.973762 
-                        elif var == 'OXY':
+                        elif var == 'OXY' and unit == 'CMEMS':
                             DFM_crop = DFM_crop*1000/31.998 
-                        elif var == 'PCO2':
+                        elif var == 'PCO2' and unit == 'CMEMS':
                             DFM_crop = DFM_crop*1000/(12+2*32)  
                     
                         DFM_xr_ds.append(DFM_crop)        

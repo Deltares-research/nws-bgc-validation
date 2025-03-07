@@ -98,7 +98,7 @@ fixed_stations = False # True or False
 buffer = 10.5 # (meters) take all measuerements from the top x meters
 
 # Minimum amount of observations per year
-min_obs_count = 1
+# min_obs_count = 1  # Can make it dependent on the variable and nr months in its aggregation.
 
 # Path to output folder for plots
 outdir = fr'P:\11209810-cmems-nws\figures\maps_model_obs\{start_year}_{end_year}' if os.name == 'nt' else fr'/p/11209810-cmems-nws/figures/maps_model_obs/{start_year}_{end_year}'
@@ -337,7 +337,15 @@ for office in offices:
                     obs_season = obs_season.dropna()
                     # Group the Series by year
                     grouped = obs_season.groupby(obs_season.index.year)
-                    # Filter out years that have fewer than a defined number of values
+
+                    ## If have multiple min_obs_count, depending on variable: (otherwise comment this and use above-defined)
+                    if var == 'Si' or var == 'PO4' or var == 'NO3' or var == 'OXY':
+                        min_obs_count = 3
+                    elif var == 'CHL' or var == 'temperature': # growing season = more months. Using 9 / 12 not give enough obs though.
+                        min_obs_count = 6
+                    else:
+                        min_obs_count = 3
+
                     obs_season = grouped.filter(lambda x: len(x) >= min_obs_count)
                     if len(obs_season) == 0:
                         colour.append([])
@@ -345,7 +353,8 @@ for office in offices:
                         longitude.append([])                       
                     else:
                         if var_obs == 'OXY':
-                            obs_seasonal_mean = obs_season.min()
+                            obs_seasonal_mean = obs_season.mean()   # for mean!
+                            # obs_seasonal_mean = obs_season.min()   # for minimum!   -- No, want bottom 25 percentile... Check timeseries code!
                         else:
                             obs_seasonal_mean = obs_season.mean()  
                             
@@ -406,22 +415,34 @@ for office in offices:
             # colorbar settings:
             text = f'{statistics}_{slice_2d}'
             if var == 'NO3':
-                vmin,vmax = 0,50    # CMEMS units
+                if unit == 'CMEMS':
+                    vmin,vmax = 0,50  
+                elif unit == 'DFM':
+                    vmin, vmax = 0,1.2 
                 cmap = cmocean.cm.matter
             elif var == 'PO4':
-                vmin,vmax = 0,1.0    # CMEMS units
+                if unit == 'CMEMS':
+                    vmin,vmax = 0,1.0 
+                elif unit == 'DFM':
+                    vmin, vmax = 0,0.08  
                 cmap = cmocean.cm.matter
             elif var == 'CHL': 
                 vmin, vmax = 0,10
                 cmap = cmocean.cm.algae
             elif var == 'OXY':
-                vmin,vmax = 120,330    # CMEMS units
+                if unit == 'CMEMS':
+                    vmin,vmax = 120,330  
+                elif unit == 'DFM':
+                    vmin, vmax = 0,12
                 cmap = cmocean.cm.oxy
             elif var == 'PH':
-                vmin,vmax = 7.0,8.5    # CMEMS units
+                vmin,vmax = 7.0,8.5  
                 cmap = cmocean.cm.thermal
             elif var == 'PCO2':
-                vmin,vmax = 10.0,50.0    # CMEMS units
+                if unit == 'CMEMS':
+                    vmin,vmax = 10,50
+                elif unit == 'DFM':
+                    vmin, vmax = 0.1,0.6  ## NOTE: TO TEST! 
                 cmap = cmocean.cm.solar
             else: 
                 print('Variable not recognised. Default colorbar settings are used.')
