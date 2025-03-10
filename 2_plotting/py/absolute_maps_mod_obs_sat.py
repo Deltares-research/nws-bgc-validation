@@ -419,6 +419,15 @@ for office in offices:
             elif var == 'PCO2':
                 vmin,vmax = 10.0,50.0    # CMEMS units
                 cmap = cmocean.cm.solar
+            elif var == 'temperature' and slice_2d == 'surface':
+                vmin,vmax = 6.0,20.0    
+                cmap = cmocean.cm.thermal
+            elif var == 'temperature' and slice_2d == 'stratification':
+                vmin,vmax = -6,6   
+                cmap = cmocean.cm.balance
+            elif var == 'salinity':
+                vmin,vmax = 10,40 
+                cmap = cmocean.cm.haline
             else: 
                 print('Variable not recognised. Default colorbar settings are used.')
                 vmin, vmax = 0,10
