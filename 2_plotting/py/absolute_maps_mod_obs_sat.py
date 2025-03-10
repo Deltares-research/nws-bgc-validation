@@ -138,6 +138,8 @@ for office in offices:
                 waq_xr = xr.open_dataset(os.path.join(basedir, 'regridded_onto_NWS', fr'regridded_{office}_{year}.nc'))
             elif office == 'NWS':
                 waq_xr = xr.open_dataset(os.path.join(basedir, 'combined_yearly', fr'{slice_2d}_{office}_{model}_{year}.nc'))
+            elif var == 'temperature' and slice_2d == 'stratification':
+                waq_xr = xr.open_dataset(os.path.join(basedir, fr'{year}_{slice_2d}_temperature.nc'))  # Need to have a stratification pre-processed .nc file
             else: #IBI and DFM
                 waq_xr = xr.open_dataset(os.path.join(basedir, 'regridded_onto_NWS', fr'regridded_{slice_2d}_{office}_{year}.nc'))
             # waq_xr = dfmt.open_partitioned_dataset(os.path.join(rootdir,fr'{office}_{model}_{year}_ugrid.nc'))  

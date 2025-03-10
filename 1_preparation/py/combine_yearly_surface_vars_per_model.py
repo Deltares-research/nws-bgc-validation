@@ -1,22 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ## Preparation
-
-# In[1]:
 
 ## Import packages
 
 import os
-import numpy as np
 import xarray as xr
 import xugrid as xu
 import pandas as pd
-import dfm_tools as dfmt
 import dask
-
-
-# In[2]:
 
 
 # ## Choose the model domain  - keep full for now.
@@ -27,13 +19,7 @@ import dask
 # max_lat = 65
 
 
-# In[3]:
-
-
 outdir = r'p:\11209810-cmems-nws\model_output\combined_yearly' if os.name == 'nt' else r'/p/11209810-cmems-nws/model_output/combined_yearly'
-
-
-# In[4]:
 
 
 ## Functions:
@@ -220,7 +206,6 @@ def save_dataset_with_dask(ds_merge, output_file):
 def years_in_order(start_year, end_year):
     return list(range(start_year, end_year + 1))
 
-# In[5]:
 ## Combine the .nc files into yearly files
 
 # Selection:
@@ -306,5 +291,3 @@ for office in offices:
             print(f'Done for {office}_{model}_{year}')
             print("=================================")
     
-
-# %%

@@ -65,7 +65,7 @@ def rechunk(ds):
     
 def years_in_order(start_year, end_year):
     return list(range(start_year, end_year + 1))
-#%%
+
 
 # Choose the model domain
 min_lon = -20 
@@ -88,7 +88,7 @@ office = 'IBI'
 
 selected_years = years_in_order(start_year, end_year)
 
-#%%# Interpolation grid
+## Interpolation grid
 if model == 'rea':
     filei = os.path.join(basedir, 'combined_yearly', fr'surface_NWS_{model}_2003.nc')
 elif model == 'nrt':
@@ -102,7 +102,7 @@ except NameError:
     # Handle the case where min_lon is not defined
     print("Bounding box slicing for IBI is not applied.")
 
-# In[5]:
+
 if office == 'satellite':
     ### Satellite ### -- Keep in structure as NWS also kept in structure... Just check nearest interpolation method...
     
@@ -185,6 +185,9 @@ if office == 'DFM':
         layer=-1   # Have to rewrite!
     elif slice_2d == 'bottom':
         layer = 'bedlevel'          # bedlevel / waterlevel
+    elif slice_2d == 'stratification':
+        layer_surface = -1 # 'surface' <- using this is slow...
+        layer_bottom = 'bedlevel'
     
     vars_list = ['mesh2d_Chlfa', 'mesh2d_NO3', 'mesh2d_OXY', 'mesh2d_pH', 'mesh2d_PO4', 'mesh2d_pCO2water']
     
@@ -223,6 +226,11 @@ if office == 'DFM':
                 DFM_crop = DFM_xr.isel(mesh2d_nLayers=layer, nmesh2d_layer=layer, missing_dims='ignore')  # old
             elif slice_2d == 'bottom':
                 DFM_crop = dfmt.get_Dataset_atdepths(data_xr=DFM_xr, depths=0, reference=layer)
+            elif slice_2d == 'stratification':
+                # DFM_crop_surface = dfmt.get_Dataset_atdepths(data_xr=DFM_xr, depths=0, reference=layer_surface)  # code much slower than other method...
+                DFM_crop_surface = DFM_xr.isel(mesh2d_nLayers=layer_surface, nmesh2d_layer=layer_surface, missing_dims='ignore')
+                DFM_crop_bottom = dfmt.get_Dataset_atdepths(data_xr=DFM_xr, depths=0, reference=layer_bottom)
+                DFM_crop = DFM_crop_surface - DFM_crop_bottom
                     
             # Crop spatial domain
             try:
