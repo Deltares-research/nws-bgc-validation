@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-#%%  
+ 
 ## Imports
 
 import os
@@ -61,8 +60,7 @@ def var_mapping(var):
         var_obs = 'pCO2'
               
     return var_sat, var_IBI, var_NWS, var_DFM, var_obs
-
-#%%   
+   
 ## Select domain
 
 # LAT_MIN = None
@@ -80,17 +78,16 @@ zooming = 'zoom'
 #Input directory
 basedir = r'P:\11209810-cmems-nws\model_output' if os.name == 'nt' else r'/p/11209810-cmems-nws/model_output'
 #rootdir = os.path.join(basedir, 'regridded_onto_NWS')
-
-#%%  
+ 
 ## Choose and read the model map files:
 
-offices = ['IBI', 'satellite']  #
-model = 'nrt' #'rea' 'nrt'
-start_year = 2021
-end_year = 2022
-slice_2d = 'surface' #surface or bottom (bottom only works for DFM currently) 
+offices = ['DFM']  #
+model = 'rea' #'rea' 'nrt'
+start_year = 2015
+end_year = 2017
+slice_2d = 'stratification' #surface or bottom (bottom only works for DFM currently) 
 NWDM_gridded = True
-variables = ['PH', 'CHL','OXY'] 
+variables = ['temperature'] 
 #variables = ['NO3','PO4'] 
 #variables = ['PCO2'] #PCO2 only available in gridded format 
 
@@ -98,7 +95,7 @@ variables = ['PH', 'CHL','OXY']
 fixed_stations = False # True or False
 
 #Buffer for surface observations
-buffer = 10.5 # (meters) take all measuerements from the top x meters
+buffer = 5.5 # (meters) take all measuerements from the top x meters
 
 #Minimum amount of observations per year
 min_obs_count = 1
@@ -106,7 +103,7 @@ min_obs_count = 1
 # path to output folder for plots
 outdir = fr'P:\11209810-cmems-nws\figures\maps_model_obs\{start_year}_{end_year}' if os.name == 'nt' else fr'/p/11209810-cmems-nws/figures/maps_model_obs/{start_year}_{end_year}'
 
-#%% 
+
 if not os.path.exists(outdir):
     os.makedirs(outdir)
 
@@ -265,8 +262,8 @@ for office in offices:
         obs = obs.loc[(obs.datetime>=f'{start_year}-01-01') & (obs.datetime<=f'{str(int(end_year)+1)}-01-01')]
         
         #Select observations in the top layer using buffer
-        if slice_2d == 'surface' and NWDM_gridded == False:
-            obs = obs[abs(obs['depth']) <= buffer] 
+        if NWDM_gridded == False:                   # Gridded already cropped!
+            obs = obs[abs(obs['depth']) < buffer]   # abs, therefore works for surface and bottom 
         
         if fixed_stations == False and NWDM_gridded == False:
             plot_locs = np.unique(np.unique(obs.geom.values.astype(str)))
@@ -467,5 +464,3 @@ for office in offices:
             print(f'Plot saved for {var} for {office}, {statistics}')
             print(' ')
             i=i+1
-
-# %%
