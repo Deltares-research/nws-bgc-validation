@@ -23,8 +23,6 @@ from geopy.distance import geodesic
 import warnings
 import math
 
-# from metpy.interpolate import cross_section  # for NWS transect extraction
-
 
 # Functions
 
@@ -118,7 +116,7 @@ trans_dict = {
 # Suppress specific warning types (e.g., DeprecationWarning, UserWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
-#%%    
+
 #Directories
 rootdir = r'P:\11209810-cmems-nws\model_output\combined_yearly' if os.name == 'nt' else r'/p/11209810-cmems-nws/model_output/combined_yearly'
 
@@ -135,19 +133,18 @@ bin_size = 5 #in meters
 # Define a distance threshold (e.g., 0.05 degrees ~ approx 5-6 km) for the transect line to snap observations
 distance_threshold = 0.08
 print(f'distance threshold: {distance_threshold}')
+unit = 'CMEMS' # CMEMS / DFM
 
 outdir = fr'P:\11209810-cmems-nws\figures\transects\{start_year}_{end_year}' if os.name == 'nt' else fr'/p/11209810-cmems-nws/figures/transects/{start_year}_{end_year}'
 if not os.path.exists(outdir):
     os.makedirs(outdir)
 
 offices = ['IBI']#, 'NWS']
-# variables = ['PH', 'PO4', 'NO3', 'CHL', 'OXY']
-variables = ['CHL']
+variables = ['PH', 'PO4', 'NO3', 'CHL', 'OXY']
 
 # Choose transects
 # transects = ['NORWAY1','NORWAY2','DENMARK','NOORDWK', 'TERSLG', 'ROTTMPT', 'WALCRN']
 transects = ['NORWAY2']
-# transects = ['TERSLG']
 
 for office in offices:
     for var in variables:
@@ -161,15 +158,24 @@ for office in offices:
             cbar_title = 'Chlorophyll [mg m-3]'
             cmap = cmocean.cm.algae
         elif var == 'NO3':
-            vmin, vmax, step = 0,50, 20
+            if unit == 'CMEMS':
+                vmin, vmax, step = 0,50, 20
+            elif unit == 'DFM':
+                vmin, vmax, step = 0,1.2, 20
             cbar_title = 'Nitrate [mmol m-3]'
             cmap = cmocean.cm.matter
         elif var == 'PO4':
-            vmin, vmax, step = 0.0 ,1.0, 20
+            if unit == 'CMEMS':
+                vmin, vmax, step = 0.0 ,1.0, 20
+            elif unit == 'DFM':
+                vmin, vmax, step = 0.0,0.08, 20
             cbar_title = 'Phosphate [mmol m-3]'
             cmap = cmocean.cm.matter
         elif var == 'OXY':
-            vmin, vmax, step = 120, 330, 20
+            if unit == 'CMEMS':
+                vmin, vmax, step = 120, 330, 20
+            elif unit == 'DFM':
+                vmin, vmax, step = 0,12, 20
             cbar_title = 'Dissolved Oxygen [mmol m-3]'
             cmap = cmocean.cm.oxy
         elif var == 'PH':
@@ -296,8 +302,10 @@ for office in offices:
                     obs_season = obs_point.loc[obs_point.index.month.isin([1,2,12]), ['value','depth']]
                     if len(obs_season) == 0:
                         obs_season_list.append([])
-                    else:
+                    elif unit == 'CMEMS':
                         obs_season['value'] = obs_season['value']*1000/14.006720 
+                    else:
+                        obs_season['value'] = obs_season['value']
                         
                         # Handle the range of depths (negative and zero)
                         min_depth = math.floor(obs_season['depth'].min())  # Round down for most negative depth
@@ -323,8 +331,10 @@ for office in offices:
                     obs_season = obs_point.loc[obs_point.index.month.isin([1,2,12]), ['value','depth']]
                     if len(obs_season) == 0:
                         obs_season_list.append([])
-                    else:
+                    elif unit == 'CMEMS':
                         obs_season['value'] = obs_season['value']*1000/30.973762 
+                    else:
+                        obs_season['value'] = obs_season['value']
                         
                         # Handle the range of depths (negative and zero)
                         min_depth = math.floor(obs_season['depth'].min())  # Round down for most negative depth
@@ -351,8 +361,10 @@ for office in offices:
                     obs_season = obs_point.loc[obs_point.index.month.isin([6,7,8]), ['value','depth']]
                     if len(obs_season) == 0:
                         obs_season_list.append([])
-                    else:
+                    elif unit == 'CMEMS':
                         obs_season['value'] = obs_season['value']*1000/31.998 
+                    else:
+                        obs_season['value'] = obs_season['value']
 
                         # Handle the range of depths (negative and zero)
                         min_depth = math.floor(obs_season['depth'].min())  # Round down for most negative depth
@@ -428,7 +440,8 @@ for office in offices:
                     print(f'{var}, statistics: {statistics}.')
                 elif var_DFM == 'mesh2d_NO3':
                     waq_xr_season = waq_xr.where(waq_xr.time.dt.month.isin([12,1,2]), drop=True)  # Winter
-                    waq_xr_season[var_DFM] = waq_xr_season[var_DFM]*1000/14.006720 # convert units!
+                    if unit == 'CMEMS':
+                        waq_xr_season[var_DFM] = waq_xr_season[var_DFM]*1000/14.006720 # convert units!
                     waq_xr_crop = waq_xr_season.mean(dim='time', keep_attrs=True)
                     waq_xr_crop = waq_xr_crop[var_DFM]
                     waq_xr_crop_list.append(waq_xr_crop)
@@ -437,7 +450,8 @@ for office in offices:
                     print(f'{var}, statistics: {statistics}.')
                 elif var_DFM == 'mesh2d_PO4':
                     waq_xr_season = waq_xr.where(waq_xr.time.dt.month.isin([12,1,2]), drop=True)  # Winter
-                    waq_xr_season[var_DFM] = waq_xr_season[var_DFM]*1000/30.973762 # convert units!
+                    if unit == 'CMEMS':
+                        waq_xr_season[var_DFM] = waq_xr_season[var_DFM]*1000/30.973762 # convert units!
                     waq_xr_crop = waq_xr_season.mean(dim='time', keep_attrs=True)
                     waq_xr_crop = waq_xr_crop[var_DFM]
                     waq_xr_crop_list.append(waq_xr_crop)
@@ -446,7 +460,8 @@ for office in offices:
                     print(f'{var}, statistics: {statistics}.')
                 elif var_DFM == 'mesh2d_OXY':
                     waq_xr_season = waq_xr.where(waq_xr.time.dt.month.isin([6,7,8]), drop=True)  # Summer
-                    waq_xr_season[var_DFM] = waq_xr_season[var_DFM]*1000/31.998 # convert units!
+                    if unit == 'CMEMS':
+                        waq_xr_season[var_DFM] = waq_xr_season[var_DFM]*1000/31.998 # convert units!
                     waq_xr_crop = waq_xr_season.min(dim='time', keep_attrs=True)
                     waq_xr_crop = waq_xr_crop[var_DFM]
                     waq_xr_crop_list.append(waq_xr_crop)
