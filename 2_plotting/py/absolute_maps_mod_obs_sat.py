@@ -60,7 +60,7 @@ def var_mapping(var):
         var_obs = 'pCO2'
               
     return var_sat, var_IBI, var_NWS, var_DFM, var_obs
-  
+
 ## Select domain
 
 # LAT_MIN = None
@@ -78,24 +78,25 @@ zooming = 'zoom'
 # Input directory
 basedir = r'P:\11209810-cmems-nws\model_output' if os.name == 'nt' else r'/p/11209810-cmems-nws/model_output'
 #rootdir = os.path.join(basedir, 'regridded_onto_NWS')
-
-  
+ 
 ## Choose and read the model map files:
-
-offices = ['DFM'] 
+offices = ['DFM']  #
 model = 'rea' #'rea' 'nrt'
 start_year = 2015
 end_year = 2017
-slice_2d = 'surface' # surface or bottom (bottom only works for DFM currently) 
+slice_2d = 'stratification' #surface or bottom (bottom only works for DFM currently) 
 NWDM_gridded = True
-variables = ['PH', 'CHL','OXY'] # Note: PCO2 only available in gridded format 
-unit = 'CMEMS'  # CMEMS / DFM
+variables = ['temperature'] 
+#variables = ['NO3','PO4'] 
+#variables = ['PCO2'] #PCO2 only available in gridded format 
+
 
 # Points to plot (only for non-gridded)
 fixed_stations = False # True or False
 
-# Buffer for surface observations
-buffer = 10.5 # (meters) take all measuerements from the top x meters
+#Buffer for surface observations
+buffer = 5.5 # (meters) take all measuerements from the top x meters
+
 
 # Minimum amount of observations per year
 # min_obs_count = 1  # Can make it dependent on the variable and nr months in its aggregation.
@@ -138,6 +139,8 @@ for office in offices:
                 waq_xr = xr.open_dataset(os.path.join(basedir, 'regridded_onto_NWS', fr'regridded_{office}_{year}.nc'))
             elif office == 'NWS':
                 waq_xr = xr.open_dataset(os.path.join(basedir, 'combined_yearly', fr'{slice_2d}_{office}_{model}_{year}.nc'))
+            elif var == 'temperature' and slice_2d == 'stratification':
+                waq_xr = xr.open_dataset(os.path.join(basedir, fr'{year}_{slice_2d}_temperature.nc'))  # Need to have a stratification pre-processed .nc file
             else: #IBI and DFM
                 waq_xr = xr.open_dataset(os.path.join(basedir, 'regridded_onto_NWS', fr'regridded_{slice_2d}_{office}_{year}.nc'))
             # waq_xr = dfmt.open_partitioned_dataset(os.path.join(rootdir,fr'{office}_{model}_{year}_ugrid.nc'))  
@@ -262,8 +265,8 @@ for office in offices:
         obs = obs.loc[(obs.datetime>=f'{start_year}-01-01') & (obs.datetime<=f'{str(int(end_year)+1)}-01-01')]
         
         #Select observations in the top layer using buffer
-        if slice_2d == 'surface' and NWDM_gridded == False:
-            obs = obs[abs(obs['depth']) <= buffer] 
+        if NWDM_gridded == False:                   # Gridded already cropped!
+            obs = obs[abs(obs['depth']) < buffer]   # abs, therefore works for surface and bottom 
         
         if fixed_stations == False and NWDM_gridded == False:
             plot_locs = np.unique(np.unique(obs.geom.values.astype(str)))
@@ -444,6 +447,15 @@ for office in offices:
                 elif unit == 'DFM':
                     vmin, vmax = 0.1,0.6  ## NOTE: TO TEST! 
                 cmap = cmocean.cm.solar
+            elif var == 'temperature' and slice_2d == 'surface':
+                vmin,vmax = 6.0,20.0    
+                cmap = cmocean.cm.thermal
+            elif var == 'temperature' and slice_2d == 'stratification':
+                vmin,vmax = -6,6   
+                cmap = cmocean.cm.balance
+            elif var == 'salinity':
+                vmin,vmax = 10,40 
+                cmap = cmocean.cm.haline
             else: 
                 print('Variable not recognised. Default colorbar settings are used.')
                 vmin, vmax = 0,10

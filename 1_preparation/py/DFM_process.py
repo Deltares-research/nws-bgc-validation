@@ -4,7 +4,7 @@ Created on Sat Nov  2 16:46:44 2024
 
 @author: lorinc
 """
-#%%
+
 
 ## Import packages
 import os
@@ -16,7 +16,7 @@ import dfm_tools as dfmt
 import glob
 import random
 
-#%%
+
 #Functions
    
 def years_in_order(start_year, end_year):
@@ -70,7 +70,7 @@ def rechunk(ds):
     ds = ds.chunk(chunks)
     
     return ds
-#%%
+
 # Filepaths
 basedir = r'P:\11209810-cmems-nws\model_output' if os.name == 'nt' else r'/p/11209810-cmems-nws/model_output'
 outdir = os.path.join(basedir, 'DFM_processed')
@@ -105,7 +105,7 @@ for year in selected_years:
             
             #Variabes to keep
             DFM_vars_basic = ['mesh2d_taus', 'mesh2d_tausx', 'mesh2d_tausy', 'mesh2d_ucx', 'mesh2d_ucy', 
-          "mesh2d_s1", "mesh2d_bldepth", 'mesh2d_flowelem_zw', 'mesh2d_flowelem_bl'] 
+                              "mesh2d_s1", "mesh2d_bldepth", 'mesh2d_flowelem_zw', 'mesh2d_flowelem_bl'] 
                         
             #Subset variables
             DFM_xr = DFM_xr[selected_vars + DFM_vars_basic]
