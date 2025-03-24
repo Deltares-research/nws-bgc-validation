@@ -7,7 +7,8 @@
 
 - [ ]	Adding more variables to our code (e.g. pH, Si, temperature, salinity etc) – including defining ‘default’ colourbar ranges for the North Sea, but making this also changeable in a plotting function
 - [ ]	Add difference map functionality: Not just to satellites, but also model-to-model for different variables?
-- [ ]	Generally writing more functions and cleaning the code to avoid repetitions etc. 
+- [ ]	Generally writing more functions and cleaning the code to avoid repetitions etc.
+- [ ]	Add extinction data into NWDM: p:\archivedprojects\11203731-wozep\03_prim_sec_production\01_data\extinction\sioene.csv
 
 
 # Validation scripts for North West Shelf BGC models
